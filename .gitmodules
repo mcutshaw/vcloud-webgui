@@ -1,0 +1,3 @@
+[submodule "vcloud"]
+	path = vcloud
+	url = https://github.com/mcutshaw/vcloud.git
