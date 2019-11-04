@@ -45,7 +45,7 @@ class vcloud_db:
             self.execute('''CREATE TABLE tasks
                             (task_id INT AUTO_INCREMENT,
                             job_id INT,
-                            operation ENUM('CREATE', 'CHOWN', 'DELETE', 'CAPTURE', 'SNAPSHOT', 'MPOWER', 'UNDO', 'ADDUSER') NOT NULL,
+                            operation ENUM('CREATE', 'CHOWN', 'DELETE', 'CAPTURE', 'SNAPSHOT', 'MPOWER', 'UNDO', 'ADDUSER', 'UPDATEDB') NOT NULL,
                             arguments TEXT NOT NULL,
                             task_depends INT,
                             status ENUM('RUNNING', 'QUEUED','COMPLETED', 'COMPLETEDWERROR', 'FAILED', 'READY'),
@@ -107,6 +107,14 @@ class vcloud_db:
                             username TEXT,
                             email TEXT,
                             CONSTRAINT pk_vuser_id PRIMARY KEY(vuser_id));''')
+
+        if(('users',) not in tables): 
+            self.execute('''CREATE TABLE users
+                            (user_id INT AUTO_INCREMENT,
+                            username TEXT,
+                            role TEXT,
+                            disabled BOOLEAN,
+                            CONSTRAINT pk_user_id PRIMARY KEY(user_id));''')
 
     
     def close(self):
@@ -176,6 +184,13 @@ class vcloud_db:
         tasks = self.execute(f'SELECT * FROM `tasks` WHERE task_id={task_id}')
         return tasks[0]
     
+    def getLastInfoTableTask(self, table):
+        tasks = self.execute(f'SELECT * FROM `tasks` WHERE operation=\'UPDATEDB\' AND arguments=\'{table}\' ORDER BY completed_date DESC LIMIT 1')
+        if tasks == ():
+            return None
+        print(tasks)
+        return tasks[0]
+    
     def updateTaskStatus(self, task_id, status):
         self.execute(f'UPDATE `tasks` SET status=\'{status}\' WHERE task_id={task_id}')
 
@@ -190,26 +205,31 @@ class vcloud_db:
         print(query)
         self.execute(query)
 
+    ###Users
+    def insertUser(self, username, role='admin', disabled=False):
+        self.executevar('INSERT INTO `users` (username, role, disabled) VALUES(%s,%s,%s)', (username, role, disabled))
+        id = self.cur.lastrowid
+        return id
     
+    def getUserByName(self, username):
+        users = self.execute(f'SELECT * FROM `users` WHERE username=\'{username}\'')
+        return [user for user in users]
+
+    def checkUserActive(self, username):
+        users = self.execute(f'SELECT * FROM `users` WHERE username=\'{username}\' and disabled=false')
+        if len(users) > 0:
+            return True
+        else:
+            return False
 
 
+    def checkUserExists(self, username):
+        users = self.execute(f'SELECT * FROM `users` WHERE username=\'{username}\'')
+        if len(users) > 0:
+            return True
+        else:
+            return False
 
-
-#web gui
-#Get power state of vm
-#Add job
-#Add power task (if nec)
-#Add capture task (with depends if nec)
-#Add set job to ready
-
-#runner
-#process  the jobs, see the ready job
-#grab task, ignore if depend is not completed
-#assign to thread
-#set started date to curtime
-#set status to running
-#wait for good exit
-#set completed date to curtime
-#set status to completed
-#if there are no ready, or running tasks, set job to completed, compelted with error, error
-
+    def deleteUserByName(self, username):
+        self.execute(f'DELETE FROM `users` WHERE username=\'{username}\'')
+        return None

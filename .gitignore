@@ -1,1 +1,3 @@
 vcloud.conf
+.vscode/settings.json
+__pycache__/
