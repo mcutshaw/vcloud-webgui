@@ -49,7 +49,6 @@ class jobFactory:
                 db.updateTaskLog(task_id, "Unknown task type, discarded by main manager")
 
     def _capture(self, task):
-        task_id = task[0]
         args = task[3].split(',')
         vapp_name = args[0]
         template_name = args[1]
@@ -101,7 +100,7 @@ class jobFactory:
         self.db.updateTaskStatus(task_id, "COMPLETED")
         if reason is not None:
             reason = str(reason).replace("'","\\'")
-            db.updateTaskLog(task_id, reason)
+            self.db.updateTaskLog(task_id, reason)
         self.db.updateTaskCompletedDate(task_id, datetime.datetime.now())
         
     def put(self, item):
