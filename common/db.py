@@ -214,6 +214,10 @@ class vcloud_db:
     def getUserByName(self, username):
         users = self.execute(f'SELECT * FROM `users` WHERE username=\'{username}\'')
         return [user for user in users]
+    
+    def getUsers(self):
+        users = self.execute(f'SELECT * FROM `users`')
+        return [user for user in users]
 
     def checkUserActive(self, username):
         users = self.execute(f'SELECT * FROM `users` WHERE username=\'{username}\' and disabled=false')

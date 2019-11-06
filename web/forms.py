@@ -11,3 +11,7 @@ class CaptureForm(FlaskForm):
     name = StringField('vApp Name')
     submit = SubmitField('Submit')
     error_override = BooleanField('Error Override')
+
+class UsersForm(FlaskForm):
+    name = StringField('Add new user')
+    submit = SubmitField('Submit')

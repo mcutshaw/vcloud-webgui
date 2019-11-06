@@ -1,4 +1,4 @@
-from db import vcloud_db
+from common.db import vcloud_db
 
 
 class User:

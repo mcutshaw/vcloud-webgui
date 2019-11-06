@@ -7,10 +7,10 @@ from flask_login import LoginManager, current_user, login_user, logout_user, log
 from is_safe_url import is_safe_url
 from os import urandom
 
+from common.db import vcloud_db
+from web.user import User
+from web.forms import LoginForm, CaptureForm, UsersForm
 from vcloud import vcloud
-from db import vcloud_db
-from user import User
-from forms import LoginForm, CaptureForm
 
 app = Flask(__name__)      
 SECRET_KEY = urandom(32)
@@ -19,6 +19,9 @@ app.config['SECRET_KEY'] = SECRET_KEY
 config = ConfigParser()
 config.read('vcloud.conf')
 v = vcloud.vcloud(config)
+org = v.getOrg(config['Main']['Org'])
+
+
 db = vcloud_db(config)
 
 login_manager = LoginManager()
@@ -38,6 +41,10 @@ def auth(username, password):
     else:
         return False
 
+@app.route('/',methods=["GET"])
+def root():
+    return redirect(url_for('login'))
+
 @app.route('/login',methods=["POST","GET"])
 def login():
     if current_user.is_authenticated:
@@ -52,6 +59,22 @@ def login():
         login_user(user, remember=form.remember_me.data)
         return redirect(url_for('capture'))
     return render_template('login.html', title='Sign In', form=form)
+
+@app.route('/users',methods=["POST","GET"])
+@login_required
+def users():
+    form = UsersForm()
+    if form.validate_on_submit():
+        print('validated')
+        try:
+            user = org.getUser(form.name.data)
+            print(user.name)
+            db.insertUser(user.name)
+        except:
+            print('excepted')
+            flash('Invalid username')
+            return redirect(url_for('users'))
+    return render_template('users.html', title='Users', form=form, users=db.getUsers())
 
 @app.route('/capture',methods=["POST","GET"])
 @login_required

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Users</h1>
+<form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.name.label }}<br>
+        {{ form.name(size=32) }}
+    </p>
+</form>
+<form action="" method="post" novalidate>
+    <p>{{ form.submit()}}</p>
+    <table>
+        <tr>
+            <th></th>
+            <th>Name</th>
+
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td><input type="checkbox" id='{{user.1}}'></td>
+            <td>{{user.1}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</form>
+
+{% endblock %}
